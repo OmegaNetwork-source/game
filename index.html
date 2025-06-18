@@ -7,16 +7,56 @@
     body { font-family: 'Courier New', monospace; background: #f0e7d4; margin: 0; padding: 0; }
     #container { max-width: 720px; margin: 30px auto; background: #fff; padding: 20px; border: 4px solid #3a2f23; border-radius: 10px; text-align: center; }
     .btn { padding: 10px 20px; font-size: 1em; margin: 10px; cursor: pointer; border: 2px solid #3a2f23; background: #fff; }
-    .sprites { position: relative; display: flex; justify-content: space-around; align-items: center; margin: 20px 0; }
-    .sprites img { width: 100px; z-index: 2; animation: bobbing 1.5s infinite ease-in-out; }
+    .sprites {
+      position: relative;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      margin: 20px 0;
+      background-image: url('https://i.postimg.cc/sDB8KtPX/background.jpg');
+      background-size: cover;
+      background-position: center;
+      border: 2px solid #3a2f23;
+      border-radius: 10px;
+      padding: 20px 0 0;
+    }
+    .sprites img {
+      width: 100px;
+      margin-top: 40px;
+      z-index: 2;
+      animation: bobbing 1.5s infinite ease-in-out;
+    }
     @keyframes bobbing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-    .fx { position: absolute; width: 120px; height: 120px; transform: translate(-50%, -50%); background-size: contain; background-repeat: no-repeat; background-position: center; animation: fxFade 0.6s ease-out forwards; pointer-events: none; z-index: 5; }
-    @keyframes fxFade { 0% { opacity: 1; transform: scale(0.7) translate(-50%, -50%); } 100% { opacity: 0; transform: scale(1.5) translate(-50%, -50%); } }
-    .hp-bar-container { text-align: center; margin-top: 10px; }
+    .fx {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      transform: translate(-50%, -50%);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      animation: fxFade 0.6s ease-out forwards;
+      pointer-events: none;
+      z-index: 5;
+      background-color: transparent;
+    }
+    @keyframes fxFade {
+      0% { opacity: 1; transform: scale(0.7) translate(-50%, -50%); }
+      100% { opacity: 0; transform: scale(1.5) translate(-50%, -50%); }
+    }
+    .hp-bar-container { text-align: center; margin-bottom: 10px; }
     .hp-bar { width: 100px; height: 12px; background: #ccc; border: 1px solid #000; margin: auto; position: relative; }
     .fill { height: 100%; background: #c0392b; }
     .hp-text { font-size: 0.9em; margin-top: 4px; }
-    #log-box { background: #eee; border: 1px solid #333; height: 100px; overflow-y: auto; padding: 10px; margin: 20px 0; }
+    #log-box {
+  background: #eee;
+  border: 1px solid #333;
+  height: 100px;
+  overflow-y: auto;
+  padding: 10px;
+  margin: 20px 0;
+  font-weight: bold;
+}
     .log-left { text-align: left; }
     .log-right { text-align: right; }
     #actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
@@ -36,22 +76,26 @@
   </div>
   <div id="game" style="display:none;">
     <div class="sprites">
-      <div class="hp-bar-container">
+      <div>
+        <div class="hp-bar-container">
+          <div class="hp-bar"><div id="player-hp" class="fill"></div></div>
+          <div class="hp-text" id="player-hp-text">HP: 10 / 10</div>
+        </div>
         <img id="player-sprite"><br>
-        <div class="hp-bar"><div id="player-hp" class="fill"></div></div>
-        <div class="hp-text" id="player-hp-text">HP: 10 / 10</div>
       </div>
-      <div class="hp-bar-container">
+      <div>
+        <div class="hp-bar-container">
+          <div class="hp-bar"><div id="enemy-hp" class="fill"></div></div>
+          <div class="hp-text" id="enemy-hp-text">HP: 10 / 10</div>
+        </div>
         <img id="enemy-sprite"><br>
-        <div class="hp-bar"><div id="enemy-hp" class="fill"></div></div>
-        <div class="hp-text" id="enemy-hp-text">HP: 10 / 10</div>
       </div>
     </div>
     <div id="log-box"></div>
     <div id="actions">
       <button class="btn" onclick="playerAct('slash')">🗡 Slash</button>
       <button class="btn" onclick="playerAct('heal')">❤️ Heal</button>
-      <button class="btn" onclick="playerAct('block')">🛡 Block</button>
+      <button class="btn" onclick="playerAct('beam')">🔷 Beam Blast</button>
       <button class="btn" onclick="playerAct('kick')">🔥 Kick</button>
     </div>
     <div id="replay" style="display:none;">
@@ -86,18 +130,34 @@ function start(clan) {
   document.getElementById("game").style.display = "block";
   updateBars();
   updateLeaderboard();
+  disableButtons(false);
+}
+
+function showFX(type, target) {
+  const fx = document.createElement("div");
+  fx.className = "fx";
+  const urls = {
+    heal: "https://i.postimg.cc/jd0WBCdp/health.png",
+    slash: "https://i.postimg.cc/1XgpBdBD/slash.jpg",
+    fire: "https://i.postimg.cc/4xY1wm8r/fire-attack.png",
+    water: "https://i.postimg.cc/KjQ5pLhy/water-attack.png",
+    beam: "https://i.postimg.cc/7ZPjyf0B/beam-blast.jpg"
+  };
+  fx.style.backgroundImage = `url('${type === "kick" ? (player.clan === "fire" ? urls.fire : urls.water) : urls[type]}')`;
+  fx.style.left = target.offsetLeft + target.offsetWidth / 2 + "px";
+  fx.style.top = target.offsetTop + target.offsetHeight / 2 + "px";
+  target.parentElement.appendChild(fx);
+  setTimeout(() => fx.remove(), 600);
 }
 
 function playerAct(action) {
   if (player.hp <= 0 || enemy.hp <= 0) return;
   const log = document.getElementById("log-box");
   const p = document.createElement("p");
-  let msg = "", dmg = 0;
+  let msg = "";
   block = false;
-
   if (action === "slash") {
-    dmg = 3;
-    enemy.hp = Math.max(0, enemy.hp - dmg);
+    enemy.hp = Math.max(0, enemy.hp - 3);
     showFX("slash", document.getElementById("enemy-sprite"));
     msg = "You used Slash!";
   } else if (action === "heal") {
@@ -105,21 +165,21 @@ function playerAct(action) {
     player.hp = Math.min(10, player.hp + heal);
     showFX("heal", document.getElementById("player-sprite"));
     msg = `You healed ${heal} HP!`;
-  } else if (action === "block") {
-    block = true;
-    msg = "You prepare to block.";
+  } else if (action === "beam") {
+    const dmg = 4;
+    enemy.hp = Math.max(0, enemy.hp - dmg);
+    showFX("beam", document.getElementById("enemy-sprite"));
+    msg = "You fired a Beam Blast!";
   } else if (action === "kick") {
-    dmg = 2 + Math.floor(Math.random() * 3);
+    const dmg = 2 + Math.floor(Math.random() * 3);
     enemy.hp = Math.max(0, enemy.hp - dmg);
     showFX("kick", document.getElementById("enemy-sprite"));
     msg = `${player.clan === 'fire' ? 'Flame' : 'Water'} Kick hits!`;
   }
-
   p.textContent = msg;
   p.className = "log-left";
   log.prepend(p);
   updateBars();
-
   if (enemy.hp <= 0) {
     const win = document.createElement("p");
     win.className = "log-left";
@@ -129,6 +189,7 @@ function playerAct(action) {
     localStorage.setItem(player.name + "_xp", player.xp);
     updateLeaderboard();
     document.getElementById("replay").style.display = "block";
+    disableButtons(true);
   } else {
     disableButtons(true);
     setTimeout(enemyTurn, 800);
@@ -140,7 +201,6 @@ function enemyTurn() {
   const log = document.getElementById("log-box");
   const p = document.createElement("p");
   const move = ["strike", "focus", "strike"][Math.floor(Math.random() * 3)];
-
   if (move === "strike") {
     const dmg = block ? 0 : 2;
     player.hp = Math.max(0, player.hp - dmg);
@@ -152,11 +212,9 @@ function enemyTurn() {
     showFX("heal", document.getElementById("enemy-sprite"));
     p.textContent = "Enemy heals itself!";
   }
-
   p.className = "log-right";
   log.prepend(p);
   updateBars();
-
   if (player.hp <= 0) {
     const lose = document.createElement("p");
     lose.className = "log-right";
@@ -166,6 +224,17 @@ function enemyTurn() {
   } else {
     disableButtons(false);
   }
+}
+
+function restart() {
+  player.hp = 10;
+  enemy.hp = 10;
+  block = false;
+  document.getElementById("setup").style.display = "block";
+  document.getElementById("game").style.display = "none";
+  document.getElementById("log-box").innerHTML = "";
+  updateBars();
+  disableButtons(false);
 }
 
 function updateBars() {
@@ -181,32 +250,6 @@ function updateLeaderboard() {
                      .sort((a,b) => b.xp - a.xp);
   const list = document.getElementById("leaderboard-list");
   list.innerHTML = sorted.map(u => `<li>${u.name} — Level ${1 + Math.floor(u.xp / 10)} | XP: ${u.xp}</li>`).join("");
-}
-
-function showFX(type, target) {
-  const fx = document.createElement("div");
-  fx.className = "fx";
-  const urls = {
-    heal: "https://i.postimg.cc/jd0WBCdp/health.png",
-    slash: "https://i.postimg.cc/1XgpBdBD/slash.jpg",
-    fire: "https://i.postimg.cc/4xY1wm8r/fire-attack.png",
-    water: "https://i.postimg.cc/KjQ5pLhy/water-attack.png"
-  };
-  fx.style.backgroundImage = `url('${type === "kick" ? (player.clan === "fire" ? urls.fire : urls.water) : urls[type]}')`;
-  fx.style.left = target.offsetLeft + target.offsetWidth / 2 + "px";
-  fx.style.top = target.offsetTop + target.offsetHeight / 2 + "px";
-  target.parentElement.appendChild(fx);
-  setTimeout(() => fx.remove(), 600);
-}
-
-function restart() {
-  player.hp = 10;
-  enemy.hp = 10;
-  block = false;
-  document.getElementById("setup").style.display = "block";
-  document.getElementById("game").style.display = "none";
-  document.getElementById("log-box").innerHTML = "";
-  updateBars();
 }
 
 function disableButtons(disable) {
