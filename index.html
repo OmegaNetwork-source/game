@@ -89,6 +89,7 @@ function start(clan) {
 }
 
 function playerAct(action) {
+  if (player.hp <= 0 || enemy.hp <= 0) return;
   const log = document.getElementById("log-box");
   const p = document.createElement("p");
   let msg = "", dmg = 0;
@@ -135,6 +136,7 @@ function playerAct(action) {
 }
 
 function enemyTurn() {
+  if (player.hp <= 0 || enemy.hp <= 0) return;
   const log = document.getElementById("log-box");
   const p = document.createElement("p");
   const move = ["strike", "focus", "strike"][Math.floor(Math.random() * 3)];
