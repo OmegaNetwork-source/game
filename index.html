@@ -49,14 +49,14 @@
     .fill { height: 100%; background: #c0392b; }
     .hp-text { font-size: 0.9em; margin-top: 4px; }
     #log-box {
-  background: #eee;
-  border: 1px solid #333;
-  height: 100px;
-  overflow-y: auto;
-  padding: 10px;
-  margin: 20px 0;
-  font-weight: bold;
-}
+      background: #eee;
+      border: 1px solid #333;
+      height: 100px;
+      overflow-y: auto;
+      padding: 10px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
     .log-left { text-align: left; }
     .log-right { text-align: right; }
     #actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
@@ -76,14 +76,14 @@
   </div>
   <div id="game" style="display:none;">
     <div class="sprites">
-      <div>
+      <div id="player-container" style="position:relative; transition: transform 0.4s ease;">
         <div class="hp-bar-container">
           <div class="hp-bar"><div id="player-hp" class="fill"></div></div>
           <div class="hp-text" id="player-hp-text">HP: 10 / 10</div>
         </div>
         <img id="player-sprite"><br>
       </div>
-      <div>
+      <div id="enemy-container" style="position:relative; transition: transform 0.4s ease;">
         <div class="hp-bar-container">
           <div class="hp-bar"><div id="enemy-hp" class="fill"></div></div>
           <div class="hp-text" id="enemy-hp-text">HP: 10 / 10</div>
@@ -95,7 +95,7 @@
     <div id="actions">
       <button class="btn" onclick="playerAct('slash')">🗡 Slash</button>
       <button class="btn" onclick="playerAct('heal')">❤️ Heal</button>
-      <button class="btn" onclick="playerAct('beam')">🔷 Beam Blast</button>
+      <button class="btn" id="beam-btn" onclick="playerAct('beam')">🔷 Beam Blast</button>
       <button class="btn" onclick="playerAct('kick')">🔥 Kick</button>
     </div>
     <div id="replay" style="display:none;">
@@ -108,7 +108,7 @@
   </div>
 </div>
 <script>
-let player = { hp: 10, name: '', clan: '', xp: 0 }, enemy = { hp: 10, name: '', clan: '' }, block = false;
+let player = { hp: 20, name: '', clan: '', xp: 0 }, enemy = { hp: 20, name: '', clan: '' }, block = false;
 
 function start(clan) {
   const name = document.getElementById("username").value.trim();
@@ -156,8 +156,13 @@ function playerAct(action) {
   const p = document.createElement("p");
   let msg = "";
   block = false;
+  if (["slash", "kick", "beam"].includes(action)) {
+    const playerBox = document.getElementById("player-container");
+    playerBox.style.transform = "translateX(20px)";
+    setTimeout(() => playerBox.style.transform = "translateX(0)", 400);
+  }
   if (action === "slash") {
-    enemy.hp = Math.max(0, enemy.hp - 3);
+    enemy.hp = Math.max(0, enemy.hp - 2);
     showFX("slash", document.getElementById("enemy-sprite"));
     msg = "You used Slash!";
   } else if (action === "heal") {
@@ -166,12 +171,14 @@ function playerAct(action) {
     showFX("heal", document.getElementById("player-sprite"));
     msg = `You healed ${heal} HP!`;
   } else if (action === "beam") {
-    const dmg = 4;
+    
+    
+    const dmg = 3;
     enemy.hp = Math.max(0, enemy.hp - dmg);
     showFX("beam", document.getElementById("enemy-sprite"));
     msg = "You fired a Beam Blast!";
   } else if (action === "kick") {
-    const dmg = 2 + Math.floor(Math.random() * 3);
+    const dmg = 1 + Math.floor(Math.random() * 2);
     enemy.hp = Math.max(0, enemy.hp - dmg);
     showFX("kick", document.getElementById("enemy-sprite"));
     msg = `${player.clan === 'fire' ? 'Flame' : 'Water'} Kick hits!`;
@@ -197,12 +204,16 @@ function playerAct(action) {
 }
 
 function enemyTurn() {
+  
   if (player.hp <= 0 || enemy.hp <= 0) return;
   const log = document.getElementById("log-box");
   const p = document.createElement("p");
   const move = ["strike", "focus", "strike"][Math.floor(Math.random() * 3)];
+  const enemyBox = document.getElementById("enemy-container");
+  enemyBox.style.transform = "translateX(-20px)";
+  setTimeout(() => enemyBox.style.transform = "translateX(0)", 400);
   if (move === "strike") {
-    const dmg = block ? 0 : 2;
+    const dmg = block ? 0 : 1;
     player.hp = Math.max(0, player.hp - dmg);
     if (!block) showFX("slash", document.getElementById("player-sprite"));
     p.textContent = block ? "Enemy attacked but you blocked!" : "Enemy slashed you!";
